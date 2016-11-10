@@ -16,6 +16,18 @@ def whet_appetite():
     y = W * x_data + b
 
     loss = tf.reduce_mean(tf.square(y - y_data))
+    optimizer = tf.train.GradientDescentOptimizer(0.5)
+    train = optimizer.minimize(loss)
+
+    init = tf.initialize_all_variables()
+
+    sess = tf.Session()
+    sess.run(init)
+
+    for step in range(201):
+            sess.run(train)
+            if (step % 20) == 0:
+                    print(step, sess.run(W), sess.run(b))
 
 if __name__ == '__main__':
     whet_appetite()
