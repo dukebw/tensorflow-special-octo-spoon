@@ -46,21 +46,11 @@ def conv_layer(shape, in_activations):
         h_conv = tf.nn.relu(conv2d(in_activations, W_conv) + b_conv)
         return max_pool_2x2(h_conv)
 
-def mnist_softmax():
+def get_mnist_conv_net(x_image):
         """
-        Models MNIST handwritten digit classification problem using a
-        multi-layer convolutional neural network.
-
-        The loss function is the cross-entropy, which internally computes
-        softmax on the output activations.
+        Creates a convolutional neural network with three layers: two
+        convolutional, and one densely connected.
         """
-        mnist_data = input_data.read_data_sets("MNIST_data/", one_hot = True)
-
-        x = tf.placeholder(tf.float32, shape = [None, 784])
-        y_ = tf.placeholder(tf.float32, shape = [None, 10])
-
-        x_image = tf.reshape(x, [-1, 28, 28, 1])
-
         h_pool1 = conv_layer([5, 5, 1, 32], x_image)
         h_pool2 = conv_layer([5, 5, 32, 64], h_pool1)
 
@@ -76,7 +66,39 @@ def mnist_softmax():
         W_fc2 = weight_variable([1024, 10])
         b_fc2 = bias_variable([10])
 
-        y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+        return tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+
+def run_training_step(sess, accuracy, batch_index):
+        """
+        Runs a training step using the session passed in, printing accuracy
+        progress every 100 epochs.
+        """
+        batch_xs, batch_ys = mnist_data.train.next_batch(50)
+
+        if (batch_index % 100) == 0:
+                train_accuracy = accuracy.eval(feed_dict = {x: batch_xs,
+                                                            y_: batch_ys,
+                                                            keep_prob: 1.0})
+                print("step %d, training accuracy %g"%(batch_index, train_accuracy))
+
+        sess.run(train_step, feed_dict = {x: batch_xs, y_: batch_ys, keep_prob: 0.5})
+
+def mnist_softmax():
+        """
+        Models MNIST handwritten digit classification problem using a
+        multi-layer convolutional neural network.
+
+        The loss function is the cross-entropy, which internally computes
+        softmax on the output activations.
+        """
+        mnist_data = input_data.read_data_sets("MNIST_data/", one_hot = True)
+
+        x = tf.placeholder(tf.float32, shape = [None, 784])
+        y_ = tf.placeholder(tf.float32, shape = [None, 10])
+
+        x_image = tf.reshape(x, [-1, 28, 28, 1])
+
+        y_conv = get_mnist_conv_net(x_image)
 
         cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y_conv, y_))
         train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
@@ -87,15 +109,7 @@ def mnist_softmax():
                 sess.run(tf.initialize_all_variables())
 
                 for batch_index in range(20000):
-                        batch_xs, batch_ys = mnist_data.train.next_batch(50)
-
-                        if (batch_index % 100) == 0:
-                                train_accuracy = accuracy.eval(feed_dict = {x: batch_xs,
-                                                                            y_: batch_ys,
-                                                                            keep_prob: 1.0})
-                                print("step %d, training accuracy %g"%(batch_index, train_accuracy))
-
-                        sess.run(train_step, feed_dict = {x: batch_xs, y_: batch_ys, keep_prob: 0.5})
+                        run_training_step(sess, accuracy, batch_index)
 
                 print(sess.run(accuracy, feed_dict = {x: mnist_data.test.images,
                                                       y_: mnist_data.test.labels,
