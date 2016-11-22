@@ -9,6 +9,7 @@ def weight_variable(shape):
         This is for symmetry breaking, and to prevent 0 gradients.
         """
         initial = tf.truncated_normal(shape, stddev = 0.1)
+
         return tf.Variable(initial)
 
 def bias_variable(shape):
@@ -17,6 +18,7 @@ def bias_variable(shape):
         positive bias to avoid "dead neurons".
         """
         initial = tf.constant(0.1, shape = shape)
+
         return tf.Variable(initial)
 
 def conv2d(x, W):
@@ -44,6 +46,7 @@ def conv_layer(shape, in_activations):
         b_conv = bias_variable([shape[-1]])
 
         h_conv = tf.nn.relu(conv2d(in_activations, W_conv) + b_conv)
+
         return max_pool_2x2(h_conv)
 
 def get_mnist_conv_net(x_image):
@@ -67,6 +70,7 @@ def get_mnist_conv_net(x_image):
         b_fc2 = bias_variable([10])
 
         y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+
         return y_conv, keep_prob
 
 def train_mnist_convnet(sess,
