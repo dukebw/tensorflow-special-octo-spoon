@@ -66,22 +66,32 @@ def get_mnist_conv_net(x_image):
         W_fc2 = weight_variable([1024, 10])
         b_fc2 = bias_variable([10])
 
-        return tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+        y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+        return y_conv, keep_prob
 
-def run_training_step(sess, accuracy, batch_index):
+def train_mnist_convnet(sess,
+                        mnist_data,
+                        x,
+                        y_,
+                        keep_prob,
+                        train_step,
+                        accuracy):
         """
-        Runs a training step using the session passed in, printing accuracy
-        progress every 100 epochs.
+        Trains the MNIST ConvNet given a training step and cost function
+        (accuracy).
+
+        Trains for 20 000 back-propagations, on mini-batches of 50 examples.
         """
-        batch_xs, batch_ys = mnist_data.train.next_batch(50)
+        for batch_index in range(20000):
+                batch_xs, batch_ys = mnist_data.train.next_batch(50)
 
-        if (batch_index % 100) == 0:
-                train_accuracy = accuracy.eval(feed_dict = {x: batch_xs,
-                                                            y_: batch_ys,
-                                                            keep_prob: 1.0})
-                print("step %d, training accuracy %g"%(batch_index, train_accuracy))
+                if (batch_index % 100) == 0:
+                        train_accuracy = accuracy.eval(feed_dict = {x: batch_xs,
+                                                                    y_: batch_ys,
+                                                                    keep_prob: 1.0})
+                        print("step %d, training accuracy %g"%(batch_index, train_accuracy))
 
-        sess.run(train_step, feed_dict = {x: batch_xs, y_: batch_ys, keep_prob: 0.5})
+                sess.run(train_step, feed_dict = {x: batch_xs, y_: batch_ys, keep_prob: 0.5})
 
 def mnist_softmax():
         """
@@ -98,7 +108,7 @@ def mnist_softmax():
 
         x_image = tf.reshape(x, [-1, 28, 28, 1])
 
-        y_conv = get_mnist_conv_net(x_image)
+        y_conv, keep_prob = get_mnist_conv_net(x_image)
 
         cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y_conv, y_))
         train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
@@ -108,8 +118,13 @@ def mnist_softmax():
         with tf.Session() as sess:
                 sess.run(tf.initialize_all_variables())
 
-                for batch_index in range(20000):
-                        run_training_step(sess, accuracy, batch_index)
+                train_mnist_convnet(sess,
+                                    mnist_data,
+                                    x,
+                                    y_,
+                                    keep_prob,
+                                    train_step,
+                                    accuracy)
 
                 print(sess.run(accuracy, feed_dict = {x: mnist_data.test.images,
                                                       y_: mnist_data.test.labels,
