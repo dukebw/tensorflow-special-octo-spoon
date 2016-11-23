@@ -3,6 +3,19 @@ import numpy
 
 BIG_ENDIAN_UINT32 = numpy.dtype(numpy.uint32).newbyteorder('>')
 
+class DataSet:
+        def __init__(self, images, labels):
+                self._images = images
+                self._labels = labels
+
+        @property
+        def images(self):
+                return self._images
+
+        @property
+        def labels(self):
+                return self._labels
+
 def read32_big_endian(byte_stream):
         return numpy.frombuffer(byte_stream.read(4), dtype = BIG_ENDIAN_UINT32)
 
