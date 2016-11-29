@@ -51,8 +51,14 @@ def conv_layer(shape, in_activations):
 
 def get_mnist_conv_net(x_image):
         """
-        Creates a convolutional neural network with three layers: two
+        @desc Creates a convolutional neural network with three layers: two
         convolutional, and one densely connected.
+
+        @param [in] x_image Input placeholder variable with the shape of the
+        MNIST images.
+
+        @return y_conv Tensor containing the entire MNIST ConvNet,
+                keep_prob Placeholder variable used for dropout.
         """
         h_pool1 = conv_layer([5, 5, 1, 32], x_image)
         h_pool2 = conv_layer([5, 5, 32, 64], h_pool1)

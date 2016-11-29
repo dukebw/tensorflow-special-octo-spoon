@@ -71,12 +71,13 @@ def write_tfrecords(dataset, tf_records_filepath, filename):
         with tf.python_io.TFRecordWriter(filename) as writer:
                 for example_index in range(dataset.num_examples):
                         image_raw = dataset.images[example_index].tostring()
-                        next_features = tf.train.Features(feature = {
+                        feature = {
                                 'height': int64_feature(dataset.images.shape[1]),
                                 'width': int64_feature(dataset.images.shape[2]),
                                 'label': int64_feature(int(dataset.labels[example_index])),
                                 'image_raw': bytes_feature(image_raw)
-                                })
+                        }
+                        next_features = tf.train.Features(feature = feature)
                         example = tf.train.Example(features = next_features)
                         writer.write(example.SerializeToString())
 
