@@ -24,12 +24,15 @@ to 100 times faster.
 
 The main disadvantage of protobufs is that, since it is a binary format, it is
 not human readable, and a \*.proto file is needed to describe the structure of
-the data so that it can be parsed (or deserialized).
+the data so that it can be de-serialized (i.e. converted from binary format
+into the object structure of a programming language such as Python).
 
 To read more about the motivation and history behind protobufs, see the
 [Protocol Buffers Overview](https://developers.google.com/protocol-buffers/docs/overview).
 
 #### `Features` Example
+
+##### Syntax
 
 As an example, take the following excerpt from
 tensorflow/core/example/feature.proto.
@@ -75,5 +78,47 @@ the range [0-15] are encoded in one byte.
 The `repeated` keyword indicates that a message may have zero or more of this
 field. E.g. `BytesList` is made up of a sequence of zero or more `bytes`.
 
+Based on the \*.proto file, the [protocol buffer
+compiler](https://developers.google.com/protocol-buffers/docs/proto3#generating)
+for Python will generate a module with a static descriptor of each message
+type. This generated module is then used with a _metaclass_ to create the
+necessary Python data access class at runtime.
+TODO(brendan): More concise summary/refer to tutorial
+
+When an encoded message is parsed, missing fields are given [default
+values](https://developers.google.com/protocol-buffers/docs/proto3#default).
+For example, for numeric types such as `int64` the default value is zero.
+
+Message types can be fields within other message types, for example `FloatList`
+is a field of `Feature`. Message type definitions can also be nested.
+
+A `oneof` field can be thought of as a `union` type in C, where each field in a
+`oneof` block shares memory, and at most one field can be set at the same time.
+Setting a `oneof` field will automatically clear all other members of the
+`oneof` block, so if we have a `Feature` and set it with a `BytesList`, that
+value will be deleted if we set the `Feature` again using a `FloatList`.
+
+The `map` syntax is a shortcut for generating key, value pairs, where the key
+type is any integral or string type and the value can be anything. The
+`map<string, Feature> feature = 1;` line uses this syntax, where the key is a
+`string` and the value is a `Feature`. The `map syntax` from our example line
+is equivalent to the code block below.
+
+```protobuf
+message MapFieldEntry {
+        string key = 1;
+        Feature value = 2;
+}
+
+repeated MapFieldEntry feature = 1;
+```
+
+So in our example, the `map` usage is again making use of nested message types.
+
 TODO(brendan): What is the meaning of [packed = true], and why is it not
 present in `BytesList`?
+
+More detailed information about proto3 syntax can be found in the [proto3
+language guide](https://developers.google.com/protocol-buffers/docs/proto3).
+
+##### Encoding
