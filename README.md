@@ -23,7 +23,7 @@ with XML, protobufs are 3 to 10 times smaller, and parsing of protobufs is 20
 to 100 times faster.
 
 The main disadvantage of protobufs is that, since it is a binary format, it is
-not human readable, and a \*.proto file is needed to describe the structure of
+not human readable, and a `.proto` file is needed to describe the structure of
 the data so that it can be de-serialized (i.e. converted from binary format
 into the object structure of a programming language such as Python).
 
@@ -65,43 +65,42 @@ message Features {
 };
 ```
 
-Note that the `syntax = "proto3";` line in the feature.proto file indicates
-that the proto3 (as opposed to proto2) version of the protobuf standard is used.
+Note that the `syntax = "proto3";` line in the `feature.proto` file indicates
+that the proto3 (as opposed to proto2) version of the protobuf standard is
+used.
 
 `BytesList`, `FloatList`, `Int64List`, `Feature`, and `Features` are all
 message types.
 
-Each field in each message type definition has a unique numbered tag. E.g. the
-field `FloatList float_list` in message type `Feature` has a tag of 2. Tags in
-the range [0-15] are encoded in one byte.
+Each field in each message type definition has a unique numbered tag. For
+example, the field `FloatList float_list` in message type `Feature` has a tag
+of 2.
 
 The `repeated` keyword indicates that a message may have zero or more of this
-field. E.g. `BytesList` is made up of a sequence of zero or more `bytes`.
+field, e.g. `BytesList` is made up of a sequence of zero or more `bytes`.
 
-Based on the \*.proto file, the [protocol buffer
-compiler](https://developers.google.com/protocol-buffers/docs/proto3#generating)
-for Python will generate a module with a static descriptor of each message
-type. This generated module is then used with a _metaclass_ to create the
-necessary Python data access class at runtime.
-TODO(brendan): More concise summary/refer to tutorial
+The `[packed = true]` syntax is a holdover from proto2, since `repeated` values
+are using packed encoding by default in proto3. The meaning of packed encoding
+can be found in the [protobuf encoding
+guide](https://developers.google.com/protocol-buffers/docs/encoding#packed).
 
 When an encoded message is parsed, missing fields are given [default
 values](https://developers.google.com/protocol-buffers/docs/proto3#default).
 For example, for numeric types such as `int64` the default value is zero.
 
-Message types can be fields within other message types, for example `FloatList`
-is a field of `Feature`. Message type definitions can also be nested.
+Message types can be fields within other message types, for example
+in `Feature`, `float_list` is a field of type `FloatList`.
 
 A `oneof` field can be thought of as a `union` type in C, where each field in a
 `oneof` block shares memory, and at most one field can be set at the same time.
 Setting a `oneof` field will automatically clear all other members of the
-`oneof` block, so if we have a `Feature` and set it with a `BytesList`, that
-value will be deleted if we set the `Feature` again using a `FloatList`.
+`oneof` block, so if we have a `Feature` and set its `bytes_list` field, that
+value will be deleted if then set its `float_list` field.
 
 The `map` syntax is a shortcut for generating key, value pairs, where the key
 type is any integral or string type and the value can be anything. The
 `map<string, Feature> feature = 1;` line uses this syntax, where the key is a
-`string` and the value is a `Feature`. The `map syntax` from our example line
+`string` and the value is a `Feature`. The `map` syntax from our example line
 is equivalent to the code block below.
 
 ```protobuf
@@ -113,12 +112,30 @@ message MapFieldEntry {
 repeated MapFieldEntry feature = 1;
 ```
 
-So in our example, the `map` usage is again making use of nested message types.
+So in our example, the `map` usage is making use of the fact that message type
+definitions can be nested.
 
-TODO(brendan): What is the meaning of [packed = true], and why is it not
-present in `BytesList`?
+Based on the `.proto` file, the [protocol buffer
+compiler](https://developers.google.com/protocol-buffers/docs/proto3#generating)
+for Python will generate a module with a static descriptor of each message
+type. This generated module is then used with a _metaclass_ to create the
+necessary Python data access class at runtime.
+TODO(brendan): More concise summary/refer to tutorial
 
 More detailed information about proto3 syntax can be found in the [proto3
 language guide](https://developers.google.com/protocol-buffers/docs/proto3).
 
 ##### Encoding
+
+```python
+image_raw = dataset.images[example_index].tostring()
+feature = {
+        'height': int64_feature(dataset.images.shape[1]),
+        'width': int64_feature(dataset.images.shape[2]),
+        'label': int64_feature(int(dataset.labels[example_index])),
+        'image_raw': bytes_feature(image_raw)
+}
+next_features = tf.train.Features(feature = feature)
+example = tf.train.Example(features = next_features)
+writer.write(example.SerializeToString())
+```
