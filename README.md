@@ -119,9 +119,13 @@ definitions can be nested.
 Based on the `.proto` file, the [protocol buffer
 compiler](https://developers.google.com/protocol-buffers/docs/proto3#generating)
 for Python will generate a module with a static descriptor of each message
-type. This generated module is then used with a _metaclass_ to create the
-necessary Python data access class at runtime.
-TODO(brendan): More concise summary/refer to tutorial
+type. This generated module is then used with the
+`GeneratedProtocolMessageType` _metaclass_ to create the necessary Python data
+access class at runtime.
+
+More information about using the Python code generated
+by the protobuf compiler can be found in the [protobuf Python
+tutorial](https://developers.google.com/protocol-buffers/docs/pythontutorial).
 
 More detailed information about proto3 syntax can be found in the [proto3
 language guide](https://developers.google.com/protocol-buffers/docs/proto3).
@@ -145,6 +149,7 @@ in little-endian is 0x12c, or 300.
 We will use the following code snippet from the `write_tfrecords` function from
 `read_mnist_data.py` as an example to explain protobuf encoding.
 
+<a name="python-example-code"></a>
 ```python
 image_raw = dataset.images[example_index].tostring()
 feature = {
@@ -169,52 +174,79 @@ message Example {
 };
 ```
 
+Take the binary blob below, which was produced by the Python [code snippet
+above](#python-example-code), and represents one `Example`.
+
 ```
-00000000  5b 03 00 00 00 00 00 00  21 51 51 b0 0a d8 06 0a  |[.......!QQ.....|
-00000010  0f 0a 06 68 65 69 67 68  74 12 05 1a 03 0a 01 1c  |...height.......|
-00000020  0a a4 06 0a 09 69 6d 61  67 65 5f 72 61 77 12 96  |.....image_raw..|
-00000030  06 0a 93 06 0a 90 06 00  00 00 00 00 00 00 00 00  |................|
-00000040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000000  0a d8 06 0a a4 06 0a 09  69 6d 61 67 65 5f 72 61  |........image_ra|
+00000010  77 12 96 06 0a 93 06 0a  90 06 00 00 00 00 00 00  |w...............|
+00000020  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
 *
-000000c0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 03  |................|
-000000d0  12 12 12 7e 88 af 1a a6  ff f7 7f 00 00 00 00 00  |...~............|
-000000e0  00 00 00 00 00 00 00 1e  24 5e 9a aa fd fd fd fd  |........$^......|
-000000f0  fd e1 ac fd f2 c3 40 00  00 00 00 00 00 00 00 00  |......@.........|
-00000100  00 00 31 ee fd fd fd fd  fd fd fd fd fb 5d 52 52  |..1..........]RR|
-00000110  38 27 00 00 00 00 00 00  00 00 00 00 00 00 12 db  |8'..............|
-00000120  fd fd fd fd fd c6 b6 f7  f1 00 00 00 00 00 00 00  |................|
-00000130  00 00 00 00 00 00 00 00  00 00 00 50 9c 6b fd fd  |...........P.k..|
-00000140  cd 0b 00 2b 9a 00 00 00  00 00 00 00 00 00 00 00  |...+............|
-00000150  00 00 00 00 00 00 00 00  0e 01 9a fd 5a 00 00 00  |............Z...|
+000000b0  00 00 03 12 12 12 7e 88  af 1a a6 ff f7 7f 00 00  |......~.........|
+000000c0  00 00 00 00 00 00 00 00  00 00 1e 24 5e 9a aa fd  |...........$^...|
+000000d0  fd fd fd fd e1 ac fd f2  c3 40 00 00 00 00 00 00  |.........@......|
+000000e0  00 00 00 00 00 31 ee fd  fd fd fd fd fd fd fd fb  |.....1..........|
+000000f0  5d 52 52 38 27 00 00 00  00 00 00 00 00 00 00 00  |]RR8'...........|
+00000100  00 12 db fd fd fd fd fd  c6 b6 f7 f1 00 00 00 00  |................|
+00000110  00 00 00 00 00 00 00 00  00 00 00 00 00 00 50 9c  |..............P.|
+00000120  6b fd fd cd 0b 00 2b 9a  00 00 00 00 00 00 00 00  |k.....+.........|
+00000130  00 00 00 00 00 00 00 00  00 00 00 0e 01 9a fd 5a  |...............Z|
+00000140  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000150  00 00 00 00 00 00 00 00  00 8b fd be 02 00 00 00  |................|
 00000160  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-00000170  00 00 00 00 00 00 8b fd  be 02 00 00 00 00 00 00  |................|
+00000170  00 00 00 00 00 0b be fd  46 00 00 00 00 00 00 00  |........F.......|
 00000180  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-00000190  00 00 0b be fd 46 00 00  00 00 00 00 00 00 00 00  |.....F..........|
-000001a0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 23  |...............#|
-000001b0  f1 e1 a0 6c 01 00 00 00  00 00 00 00 00 00 00 00  |...l............|
-000001c0  00 00 00 00 00 00 00 00  00 00 00 00 51 f0 fd fd  |............Q...|
-000001d0  77 19 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |w...............|
-000001e0  00 00 00 00 00 00 00 00  00 2d ba fd fd 96 1b 00  |.........-......|
+00000190  00 00 23 f1 e1 a0 6c 01  00 00 00 00 00 00 00 00  |..#...l.........|
+000001a0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 51  |...............Q|
+000001b0  f0 fd fd 77 19 00 00 00  00 00 00 00 00 00 00 00  |...w............|
+000001c0  00 00 00 00 00 00 00 00  00 00 00 00 2d ba fd fd  |............-...|
+000001d0  96 1b 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+000001e0  00 00 00 00 00 00 00 00  00 10 5d fc fd bb 00 00  |..........].....|
 000001f0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-00000200  00 00 00 00 00 00 10 5d  fc fd bb 00 00 00 00 00  |.......]........|
+00000200  00 00 00 00 00 00 00 f9  fd f9 40 00 00 00 00 00  |..........@.....|
 00000210  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-00000220  00 00 00 00 f9 fd f9 40  00 00 00 00 00 00 00 00  |.......@........|
-00000230  00 00 00 00 00 00 00 00  00 00 00 00 00 2e 82 b7  |................|
-00000240  fd fd cf 02 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-00000250  00 00 00 00 00 00 00 27  94 e5 fd fd fd fa b6 00  |.......'........|
-00000260  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-00000270  00 18 72 dd fd fd fd fd  c9 4e 00 00 00 00 00 00  |..r......N......|
-00000280  00 00 00 00 00 00 00 00  00 00 00 17 42 d5 fd fd  |............B...|
-00000290  fd fd c6 51 02 00 00 00  00 00 00 00 00 00 00 00  |...Q............|
-000002a0  00 00 00 00 00 12 ab db  fd fd fd fd c3 50 09 00  |.............P..|
-000002b0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 37  |...............7|
-000002c0  ac e2 fd fd fd fd f4 85  0b 00 00 00 00 00 00 00  |................|
-000002d0  00 00 00 00 00 00 00 00  00 00 00 88 fd fd fd d4  |................|
-000002e0  87 84 10 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-000002f0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000220  2e 82 b7 fd fd cf 02 00  00 00 00 00 00 00 00 00  |................|
+00000230  00 00 00 00 00 00 00 00  00 00 27 94 e5 fd fd fd  |..........'.....|
+00000240  fa b6 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000250  00 00 00 00 18 72 dd fd  fd fd fd c9 4e 00 00 00  |.....r......N...|
+00000260  00 00 00 00 00 00 00 00  00 00 00 00 00 00 17 42  |...............B|
+00000270  d5 fd fd fd fd c6 51 02  00 00 00 00 00 00 00 00  |......Q.........|
+00000280  00 00 00 00 00 00 00 00  12 ab db fd fd fd fd c3  |................|
+00000290  50 09 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |P...............|
+000002a0  00 00 37 ac e2 fd fd fd  fd f4 85 0b 00 00 00 00  |..7.............|
+000002b0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 88 fd  |................|
+000002c0  fd fd d4 87 84 10 00 00  00 00 00 00 00 00 00 00  |................|
+000002d0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
 *
-00000340  00 00 00 00 00 00 00 0a  0e 0a 05 77 69 64 74 68  |...........width|
-00000350  12 05 1a 03 0a 01 1c 0a  0e 0a 05 6c 61 62 65 6c  |...........label|
-00000360  12 05 1a 03 0a 01 05 79  28 d0 d3 5b 03 00 00 00  |.......y(..[....|
-00000370  00 00 00 21 51 51 b0
+00000320  00 00 00 00 00 00 00 00  00 00 0a 0e 0a 05 6c 61  |..............la|
+00000330  62 65 6c 12 05 1a 03 0a  01 05 0a 0f 0a 06 68 65  |bel...........he|
+00000340  69 67 68 74 12 05 1a 03  0a 01 1c 0a 0e 0a 05 77  |ight...........w|
+00000350  69 64 74 68 12 05 1a 03  0a 01 1c                 |idth.......|
 ```
+
+The first byte of the binary encoding of a protobuf message type indicates the
+field number and wire type of the message in the format `(field_number << 3) |
+wire_type`. Based on the [table of wire type
+values](https://developers.google.com/protocol-buffers/docs/encoding#structure),
+our first byte `0a` corresponds to field number 1 and a Length-delimited wire
+type. All embedded messages are length-delimited.
+
+The next two bytes `d8 06` indicate the length in bytes of the entire `Example`
+message, which is 0x358. Note that this matches the hexdump length once we take
+away the three bytes we've already parsed.
+
+The next three bytes `0a a4 06` indicate our next message type, which is the first
+length-delimited  `Feature` field of `Features`, and is of length 0x324.
+
+Recall that the `Feature` field is a key-value pair that was generated from the
+`map<string, Feature>` syntax. So, the next bytes `0a 09 69 6d 61 67 65 5f 72
+61 77` are a string type of length 9, which reads `'image_raw'`.
+
+The proceeding field is a `BytesList`, with a nested `repeated bytes` type,
+which is of length 784 or 28x28. This is the number of pixels in an MNIST
+image, as expected. Note that the field number of the `BytesList` is now 2, so
+its leading bytes is `2 << 3 | wire_type` or `12` instead of `1 << 3 |
+wire_type` or `a0` as was the case with the `'image_raw'` field.
+
+__Exercise:__ Parse the remaining `map<string, Feature>` fields of this
+`Example`, using the [protobuf code](#feature-protobuf-code) as reference.
