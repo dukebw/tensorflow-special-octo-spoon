@@ -7,16 +7,17 @@ int main(void)
 	int32_t status = SDL_Init(SDL_INIT_VIDEO);
 	assert(status == 0);
 
-	uint32_t img_dim = 32;
+	uint32_t img_dim = 256;
 	SDL_Window *window = SDL_CreateWindow("test",
 					      0,
 					      0,
 					      img_dim,
-					      32,
+					      img_dim,
 					      SDL_WINDOW_RESIZABLE);
 	assert(window != NULL);
 
 	uint8_t pixels[img_dim*img_dim*3];
+        memset(pixels, 0xFF, sizeof(pixels));
 
 	SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(pixels,
 							img_dim,
@@ -44,6 +45,8 @@ int main(void)
 				NULL,
 				NULL);
 	assert(status == 0);
+
+        SDL_RenderPresent(renderer);
 
 	SDL_Delay(3000);
 
