@@ -24,7 +24,9 @@ int main(void)
 						    SDL_RENDERER_SOFTWARE);
 	assert(renderer != NULL);
 
-	FILE *stream = popen("ffmpeg -i temp.mp4 -pix_fmt rgb24 -vf fps=1 -c:v rawvideo -map 0:v -f rawvideo pipe:1", "r");
+	char *cmd_str = "ffmpeg -i temp.mp4 -pix_fmt rgb24 -s 320x240 "
+			"-vf fps=1 -c:v rawvideo -map 0:v -f rawvideo pipe:1";
+	FILE *stream = popen(cmd_str, "r");
 	assert(stream != NULL);
 
 	while (feof(stream) == 0) {
